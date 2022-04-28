@@ -31,10 +31,12 @@ void INA237::calibrate(double res, double max_current, bool rounded)
     double new_current_lsb = ldexp(max_current, -15);
     if(rounded)
     {
-        double rounded_current_lsb = 1E-9;
+        uint32_t multiplier = 10;
+        double rounded_current_lsb = multiplier * 1E-9;
         while(rounded_current_lsb < new_current_lsb)
         {
-            rounded_current_lsb *= 2;
+            multiplier *= 2;
+            rounded_current_lsb = multiplier * 10E-9;
         }
         new_current_lsb = rounded_current_lsb;
     }
@@ -63,10 +65,10 @@ void INA237::configAlert(ina237_alrt_config_t config)
     uint8_t reg[2];
     uint16_t regval = 0;
     _readRegister(INA237_REG_DIAG_ALRT, 2, &reg[0]);
-    regval = 0x2FF & ((reg[1]<<8) | reg[0]);
+    regval = 0x2FD & ((reg[1]<<8) | reg[0]);
     regval |= (config.alatch << 15) | (config.cnvr << 14) | \
             (config.slowalert << 13) | (config.apol << 12);
-    _writeRegister(INA237_REG_CONFIG, regval);
+    _writeRegister(INA237_REG_DIAG_ALRT, regval);
 }
 
 void INA237::setConversionDelay(uint8_t delay)
@@ -166,9 +168,9 @@ uint16_t INA237::getAlertFlag(void)
 double INA237::getBusVoltage(void)
 {
     uint8_t arr[2];
-    uint16_t voltage = 0;
+    int16_t voltage = 0;
     _readRegister(INA237_REG_VBUS, 2, &arr[0]);
-    voltage = (((uint16_t)arr[1] << 8) | ((uint16_t)arr[0]));
+    voltage = (int16_t)(((uint16_t)arr[1] << 8) | ((uint16_t)arr[0]));
     
     return voltage * INA237_VBUS_LSB_RES;
 }
@@ -176,9 +178,9 @@ double INA237::getBusVoltage(void)
 double INA237::getShuntVoltage(void)
 {
     uint8_t arr[2];
-    uint16_t voltage = 0;
+    int16_t voltage = 0;
     _readRegister(INA237_REG_VSHUNT, 2, &arr[0]);
-    voltage = (((uint16_t)arr[1] << 8) | ((uint16_t)arr[0]));
+    voltage = (int16_t)(((uint16_t)arr[1] << 8) | ((uint16_t)arr[0]));
     
     return voltage * INA237_VSHUNT_LSB_RES[_adc_range];
 }
@@ -186,9 +188,9 @@ double INA237::getShuntVoltage(void)
 double INA237::getCurrent(void)
 {
     uint8_t arr[2];
-    uint16_t current = 0;
+    int16_t current = 0;
     _readRegister(INA237_REG_CURRENT, 2, &arr[0]);
-    current = (((uint16_t)arr[1] << 8) | ((uint16_t)arr[0]));
+    current = (int16_t)(((uint16_t)arr[1] << 8) | ((uint16_t)arr[0]));
 
     return current * _current_lsb;
 }
@@ -288,20 +290,20 @@ uint16_t INA237::getManufacturerID(void)
 void INA237::_readRegister(uint8_t reg, uint8_t cnt, uint8_t *data)
 {
     /* set device's register pointer to correct register before read */
-    _i2c.beginTransmission(_device_address);
-    _i2c.write(reg);
-    _i2c.endTransmission(true);
+    _i2c->beginTransmission(_device_address);
+    _i2c->write(reg);
+    _i2c->endTransmission(true);
 
-    uint8_t read = _i2c.requestFrom(_device_address, cnt, true);
+    uint8_t read = _i2c->requestFrom(_device_address, cnt, true);
     if(read != cnt)
     {
         return;
     }
-    while(cnt > _i2c.available());
+    while(cnt > _i2c->available());
 
-    for(int i = (cnt - 1), i >= 0; i--)
+    for(int i = (cnt - 1); i >= 0; i--)
     {
-        int val = _i2c.read();
+        int val = _i2c->read();
         if(val == -1)
         {
             // failed
@@ -313,9 +315,10 @@ void INA237::_readRegister(uint8_t reg, uint8_t cnt, uint8_t *data)
 
 void INA237::_writeRegister(uint8_t reg, uint16_t data)
 {
-    _i2c.beginTransmission(_device_address);
-    _i2c.write((uint8_t)(data>>8));
-    _i2c.write((uint8_t)data);
-    _i2c.endTransmission(true);
+    _i2c->beginTransmission(_device_address);
+    _i2c->write(reg);
+    _i2c->write((uint8_t)(data>>8));
+    _i2c->write((uint8_t)data);
+    _i2c->endTransmission(true);
 }
 
