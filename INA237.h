@@ -109,6 +109,7 @@ const ina237_adc_config_t INA237_DEFAULT_ADC_CONFIG =
 #define INA237_ALERT_CNVRF      0x2
 #define INA237_ALERT_MEMSTAT    0x1
 
+// all default false
 typedef struct
 {
     bool alatch;
@@ -161,10 +162,10 @@ private:
     void _writeRegister(uint8_t reg, uint8_t cnt, uint8_t *data);
 
     /* Private variables */
-    uint8_t _device_address = 0x40;
+    uint8_t _device_address;
     uint8_t _adc_range = INA237_ADC_RANGE_163_84mV;
     double _current_lsb;
-    Wire* _i2c = NULL;
+    TwoWire* _i2c;
 };
 
 

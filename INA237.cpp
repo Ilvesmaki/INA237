@@ -25,7 +25,7 @@ void INA237::reset(void)
     _writeRegister(INA237_REG_CONFIG, ((uint16_t)1<<15));
 }
 
-void INA237::calibrate(double res, double max_current, bool rounded = true)
+void INA237::calibrate(double res, double max_current, bool rounded)
 {
     const float COEFF = 819.2E6F;
     double new_current_lsb = ldexp(max_current, -15);
@@ -62,7 +62,7 @@ void INA237::configAlert(ina237_alrt_config_t config)
 {
     uint8_t reg[2];
     uint16_t regval = 0;
-    _readRegister(INA237_REG_DIAG_ALRT, 2, reg[0]);
+    _readRegister(INA237_REG_DIAG_ALRT, 2, &reg[0]);
     regval = 0x2FF & ((reg[1]<<8) | reg[0]);
     regval |= (config.alatch << 15) | (config.cnvr << 14) | \
             (config.slowalert << 13) | (config.apol << 12);
@@ -158,7 +158,7 @@ uint16_t INA237::getAlertFlag(void)
 {
     uint8_t reg[2];
     uint16_t regval;
-    _readRegister(INA237_REG_DIAG_ALRT, 2, reg[0]);
+    _readRegister(INA237_REG_DIAG_ALRT, 2, &reg[0]);
     regval = 0x2FF & ((reg[1]<<8) | reg[0]);
     return regval;
 }
@@ -287,11 +287,35 @@ uint16_t INA237::getManufacturerID(void)
 
 void INA237::_readRegister(uint8_t reg, uint8_t cnt, uint8_t *data)
 {
-    
+    /* set device's register pointer to correct register before read */
+    _i2c.beginTransmission(_device_address);
+    _i2c.write(reg);
+    _i2c.endTransmission(true);
+
+    uint8_t read = _i2c.requestFrom(_device_address, cnt, true);
+    if(read != cnt)
+    {
+        return;
+    }
+    while(cnt > _i2c.available());
+
+    for(int i = (cnt - 1), i >= 0; i--)
+    {
+        int val = _i2c.read();
+        if(val == -1)
+        {
+            // failed
+            return;
+        }
+        data[i] = (uint8_t)val;
+    }
 }
 
 void INA237::_writeRegister(uint8_t reg, uint16_t data)
 {
-
+    _i2c.beginTransmission(_device_address);
+    _i2c.write((uint8_t)(data>>8));
+    _i2c.write((uint8_t)data);
+    _i2c.endTransmission(true);
 }
 
