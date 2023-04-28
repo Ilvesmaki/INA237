@@ -28,20 +28,21 @@ void INA237::reset(void)
 void INA237::calibrate(double res, double max_current, bool rounded)
 {
     const float COEFF = 819.2E6F;
-    double new_current_lsb = ldexp(max_current, -15);
+    double new_current_lsb = ldexp(abs(max_current), -15);
     if(rounded)
     {
-        uint32_t multiplier = 10;
-        double rounded_current_lsb = multiplier * 1E-9;
-        while(rounded_current_lsb < new_current_lsb)
+        uint32_t multiplier = 1;
+        double rounded_current_lsb = new_current_lsb;
+        while (rounded_current_lsb < 1.0F)
         {
-            multiplier *= 2;
-            rounded_current_lsb = multiplier * 10E-9;
+            multiplier *= 10;
+            rounded_current_lsb = new_current_lsb * multiplier;
         }
-        new_current_lsb = rounded_current_lsb;
+
+        new_current_lsb = (ceil(rounded_current_lsb) / multiplier);
     }
     _current_lsb = new_current_lsb;
-    uint16_t shunt_cal = (uint16_t)(COEFF * new_current_lsb * res * (_adc_range?4:1));
+    uint16_t shunt_cal = (uint16_t)(COEFF * new_current_lsb * abs(res) * (_adc_range?4:1));
     _writeRegister(INA237_REG_SHUNT_CAL, shunt_cal);
 }
 
