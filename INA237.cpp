@@ -322,14 +322,18 @@ uint16_t INA237::getManufacturerID(void) const
 
 /*----------PRIVATE FUNCTIONS-------------------------------------------------*/
 
-void INA237::_readRegister(uint8_t reg, uint8_t cnt, uint8_t *data) const
+void INA237::_readRegister(uint8_t reg, size_t cnt, uint8_t *data) const
 {
+    if(!_i2c)
+    {
+        return;
+    }
     /* set device's register pointer to correct register before read */
     _i2c->beginTransmission(_device_address);
     _i2c->write(reg);
     _i2c->endTransmission(true);
 
-    uint8_t read = _i2c->requestFrom(_device_address, cnt, true);
+    size_t read = _i2c->requestFrom(_device_address, cnt, true);
     if(read != cnt)
     {
         return;
@@ -350,6 +354,10 @@ void INA237::_readRegister(uint8_t reg, uint8_t cnt, uint8_t *data) const
 
 void INA237::_writeRegister(uint8_t reg, uint16_t data)
 {
+    if(!_i2c)
+    {
+        return;
+    }
     _i2c->beginTransmission(_device_address);
     _i2c->write(reg);
     _i2c->write((uint8_t)(data>>8));

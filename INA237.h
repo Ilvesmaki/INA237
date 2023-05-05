@@ -161,16 +161,16 @@ public:
     uint16_t getManufacturerID(void) const;
 
 private:
-    void _readRegister(const uint8_t reg, const uint8_t cnt, uint8_t *data) const;
+    void _readRegister(const uint8_t reg, const size_t cnt, uint8_t *data) const;
     void _writeRegister(const uint8_t reg, const uint16_t data);
-    void _writeRegister(const uint8_t reg, const uint8_t cnt, uint8_t *data);
 
     /* Private variables */
+    TwoWire* _i2c = nullptr;
     uint8_t _device_address;
     uint8_t _adc_range = INA237_ADC_RANGE_163_84mV;
     double _current_lsb = 0.0;
     double _shunt_res = 0.0;
-    TwoWire* _i2c;
+    
 };
 
 
