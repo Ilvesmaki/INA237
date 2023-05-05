@@ -21,14 +21,15 @@ INA237::~INA237()
 
 void INA237::reset(void)
 {
-    // TODO: reset internal private variables
     _writeRegister(INA237_REG_CONFIG, ((uint16_t)1<<15));
+    _current_lsb = 0;
+    _adc_range = INA237_ADC_RANGE_163_84mV;
 }
 
 void INA237::calibrate(double res, double max_current, bool rounded)
 {
     const float COEFF = 819.2E6F;
-    double new_current_lsb = ldexp(abs(max_current), -15);
+    double new_current_lsb = (max_current != 0.0F) ? ldexp(abs(max_current), -15) : 0.0F;
     if(rounded)
     {
         uint32_t multiplier = 1;
@@ -150,7 +151,8 @@ void INA237::setTempOverlimitTreshold(double temp)
 
 void INA237::setPowerOverlimitTreshold(double power)
 {
-    double value = power / (_current_lsb * 0.2 * 256);
+    double divider = (_current_lsb * 0.2 * 256);
+    double value = divider != 0.0 ? ( power / divider) : 0.0;
     uint16_t regval = (value > UINT16_MAX ? UINT16_MAX : \
                      (value < 0 ? 0 : (uint16_t)round(value)));
 

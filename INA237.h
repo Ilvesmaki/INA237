@@ -164,7 +164,7 @@ private:
     /* Private variables */
     uint8_t _device_address;
     uint8_t _adc_range = INA237_ADC_RANGE_163_84mV;
-    double _current_lsb;
+    double _current_lsb = 0.0;
     TwoWire* _i2c;
 };
 
