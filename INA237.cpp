@@ -141,20 +141,20 @@ void INA237::setBusUndervoltageTreshold(double voltage)
 
 void INA237::setTempOverlimitTreshold(double temp)
 {
-    temp = temp > 256 ? 256 : (temp < -256 ? -256 : temp);
+    temp = temp > 255 ? 255 : (temp < -255 ? -255 : temp);
     double value = temp / INA237_TEMP_LSB_RES;
-    int16_t regval = (int16_t)value;
-
-    _writeRegister(INA237_REG_SOVL, (uint16_t)regval);
+    int16_t regval = ((int16_t)round(value) << 4) & 0xFFF0;
+    
+    _writeRegister(INA237_REG_TEMP_LIMIT, (uint16_t)regval);
 }
 
 void INA237::setPowerOverlimitTreshold(double power)
 {
-    double value = power / (_current_lsb * 0.2);
+    double value = power / (_current_lsb * 0.2 * 256);
     uint16_t regval = (value > UINT16_MAX ? UINT16_MAX : \
-                     (value < 0 ? 0 : (uint16_t)value));
+                     (value < 0 ? 0 : (uint16_t)round(value)));
 
-    _writeRegister(INA237_REG_SOVL, (uint16_t)regval);
+    _writeRegister(INA237_REG_PWR_LIMIT, (uint16_t)regval);
 }
 
 uint16_t INA237::getAlertFlag(void)
@@ -212,6 +212,7 @@ double INA237::getTemp(void)
     int16_t temp = 0;
     _readRegister(INA237_REG_DIETEMP, 2, &arr[0]);
     temp = (int16_t)(((uint16_t)arr[1] << 8) | ((uint16_t)arr[0]));
+    temp >>= 4;
 
     return temp * INA237_TEMP_LSB_RES;
 }
@@ -262,6 +263,7 @@ double INA237::getTempOverlimitTreshold(void)
     int16_t value = 0;
     _readRegister(INA237_REG_TEMP_LIMIT, 2, &arr[0]);
     value = (int16_t)(((uint16_t)arr[1] << 8) | ((uint16_t)arr[0]));
+    value >>= 4;
 
     return value * INA237_TEMP_LSB_RES;
 }
@@ -269,9 +271,10 @@ double INA237::getTempOverlimitTreshold(void)
 double INA237::getPowerOverlimitTreshold(void)
 {
     uint8_t arr[2];
-    uint16_t value = 0;
+    uint32_t value = 0;
     _readRegister(INA237_REG_PWR_LIMIT, 2, &arr[0]);
-    value = (((uint16_t)arr[1] << 8) | ((uint16_t)arr[0]));
+    value = (((uint32_t)arr[1] << 8) | ((uint32_t)arr[0]));
+    value <<= 8; // multiply by 256
 
     return value * 0.2 * _current_lsb;
 }
@@ -280,7 +283,7 @@ uint16_t INA237::getManufacturerID(void)
 {
     uint8_t arr[2];
     uint16_t value = 0;
-    _readRegister(INA237_REG_PWR_LIMIT, 2, &arr[0]);
+    _readRegister(INA237_REG_MANUFACTURER_ID, 2, &arr[0]);
     value = (((uint16_t)arr[1] << 8) | ((uint16_t)arr[0]));
 
     return value;
