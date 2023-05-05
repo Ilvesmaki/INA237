@@ -140,6 +140,8 @@ public:
     void setBusUndervoltageTreshold(double voltage);
     void setTempOverlimitTreshold(double temp);
     void setPowerOverlimitTreshold(double power);
+    void setOverCurrentTreshold(double current);
+    void setUnderCurrentTreshold(double current);
 
     /* getters */
     uint16_t getAlertFlag(void);
@@ -154,6 +156,8 @@ public:
     double getBusUndervoltageTreshold(void);
     double getTempOverlimitTreshold(void);
     double getPowerOverlimitTreshold(void);
+    double getOverCurrentTreshold(void);
+    double getUnderCurrentTreshold(void);
     uint16_t getManufacturerID(void);
 
 private:
@@ -165,6 +169,7 @@ private:
     uint8_t _device_address;
     uint8_t _adc_range = INA237_ADC_RANGE_163_84mV;
     double _current_lsb = 0.0;
+    double _shunt_res = 0.0;
     TwoWire* _i2c;
 };
 

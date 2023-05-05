@@ -24,11 +24,13 @@ void INA237::reset(void)
     _writeRegister(INA237_REG_CONFIG, ((uint16_t)1<<15));
     _current_lsb = 0;
     _adc_range = INA237_ADC_RANGE_163_84mV;
+    _shunt_res = 0.0;
 }
 
 void INA237::calibrate(double res, double max_current, bool rounded)
 {
     const float COEFF = 819.2E6F;
+    _shunt_res = abs(res);
     double new_current_lsb = (max_current != 0.0F) ? ldexp(abs(max_current), -15) : 0.0F;
     if(rounded)
     {
@@ -43,7 +45,8 @@ void INA237::calibrate(double res, double max_current, bool rounded)
         new_current_lsb = (ceil(rounded_current_lsb) / multiplier);
     }
     _current_lsb = new_current_lsb;
-    uint16_t shunt_cal = (uint16_t)(COEFF * new_current_lsb * abs(res) * (_adc_range?4:1));
+    uint16_t shunt_cal = (uint16_t)(COEFF * new_current_lsb * _shunt_res * (_adc_range?4:1));
+    
     _writeRegister(INA237_REG_SHUNT_CAL, shunt_cal);
 }
 
@@ -157,6 +160,18 @@ void INA237::setPowerOverlimitTreshold(double power)
                      (value < 0 ? 0 : (uint16_t)round(value)));
 
     _writeRegister(INA237_REG_PWR_LIMIT, (uint16_t)regval);
+}
+
+void INA237::setOverCurrentTreshold(double current)
+{
+    double voltage = current * _shunt_res;
+    setShuntOvervoltageTreshold(voltage);
+}
+
+void INA237::setUnderCurrentTreshold(double current)
+{
+    double voltage = current * _shunt_res;
+    setShuntUndervoltageTreshold(voltage);
 }
 
 uint16_t INA237::getAlertFlag(void)
@@ -279,6 +294,20 @@ double INA237::getPowerOverlimitTreshold(void)
     value <<= 8; // multiply by 256
 
     return (double)value * 0.2 * _current_lsb;
+}
+
+double INA237::getOverCurrentTreshold(void)
+{
+    double voltage = getShuntOvervoltageTreshold();
+    double current = (_shunt_res != 0.0) ?  (voltage / _shunt_res) : 0.0;
+    return current;
+}
+
+double INA237::getUnderCurrentTreshold(void)
+{
+    double voltage = getShuntUndervoltageTreshold();
+    double current = (_shunt_res != 0.0) ?  (voltage / _shunt_res) : 0.0;
+    return current;
 }
 
 uint16_t INA237::getManufacturerID(void)
