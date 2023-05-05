@@ -10,7 +10,7 @@
  */
 #include "INA237.h"
 
-INA237::INA237(TwoWire* i2c_handler, uint8_t addr):_i2c(i2c_handler),_device_address(addr)
+INA237::INA237(TwoWire* i2c_handler, const uint8_t &addr):_i2c(i2c_handler),_device_address(addr)
 {
     
 }
@@ -27,7 +27,7 @@ void INA237::reset(void)
     _shunt_res = 0.0;
 }
 
-void INA237::calibrate(double res, double max_current, bool rounded)
+void INA237::calibrate(const double &res, const double &max_current, const bool &rounded)
 {
     const float COEFF = 819.2E6F;
     _shunt_res = abs(res);
@@ -50,7 +50,7 @@ void INA237::calibrate(double res, double max_current, bool rounded)
     _writeRegister(INA237_REG_SHUNT_CAL, shunt_cal);
 }
 
-bool INA237::configADC(ina237_adc_config_t config)
+bool INA237::configADC(const ina237_adc_config_t &config)
 {
     if(config.mode > 0xF || config.vbusct > 7 || config.vshct > 7 || \
     config.vtct > 7 || config.avg > 7)
@@ -65,7 +65,7 @@ bool INA237::configADC(ina237_adc_config_t config)
     return true;
 }
 
-void INA237::configAlert(ina237_alrt_config_t config)
+void INA237::configAlert(const ina237_alrt_config_t &config)
 {
     uint8_t reg[2];
     uint16_t regval = 0;
@@ -76,7 +76,7 @@ void INA237::configAlert(ina237_alrt_config_t config)
     _writeRegister(INA237_REG_DIAG_ALRT, regval);
 }
 
-void INA237::setConversionDelay(uint8_t delay)
+void INA237::setConversionDelay(const uint8_t &delay)
 {
     uint8_t val[2];
     uint16_t new_val;
@@ -88,7 +88,7 @@ void INA237::setConversionDelay(uint8_t delay)
     _writeRegister(INA237_REG_CONFIG, new_val);
 }
 
-void INA237::setADCRange(uint8_t range)
+void INA237::setADCRange(const uint8_t &range)
 {
     if(range != INA237_ADC_RANGE_40_96mV || range != INA237_ADC_RANGE_163_84mV)
     {
@@ -107,7 +107,7 @@ void INA237::setADCRange(uint8_t range)
     _writeRegister(INA237_REG_CONFIG, new_val);
 }
 
-void INA237::setShuntOvervoltageTreshold(double voltage)
+void INA237::setShuntOvervoltageTreshold(const double &voltage)
 {
     double value = voltage / INA237_VSHUNT_LSB_RES[_adc_range];
     int16_t regval = (value > INT16_MAX ? INT16_MAX : \
@@ -116,7 +116,7 @@ void INA237::setShuntOvervoltageTreshold(double voltage)
     _writeRegister(INA237_REG_SOVL, regval);
 }
 
-void INA237::setShuntUndervoltageTreshold(double voltage)
+void INA237::setShuntUndervoltageTreshold(const double &voltage)
 {
     double value = voltage / INA237_VSHUNT_LSB_RES[_adc_range];
     int16_t regval = (value > INT16_MAX ? INT16_MAX : \
@@ -125,7 +125,7 @@ void INA237::setShuntUndervoltageTreshold(double voltage)
     _writeRegister(INA237_REG_SUVL, regval);
 }
 
-void INA237::setBusOvervoltageTreshold(double voltage)
+void INA237::setBusOvervoltageTreshold(const double &voltage)
 {
     double value = voltage / INA237_VBUS_LSB_RES;
     uint16_t regval = (value > 0x7FFF ? 0x7FFF : \
@@ -134,7 +134,7 @@ void INA237::setBusOvervoltageTreshold(double voltage)
     _writeRegister(INA237_REG_BOVL, regval);
 }
 
-void INA237::setBusUndervoltageTreshold(double voltage)
+void INA237::setBusUndervoltageTreshold(const double &voltage)
 {
     double value = voltage / INA237_VBUS_LSB_RES;
     uint16_t regval = (value > 0x7FFF ? 0x7FFF : \
@@ -143,16 +143,16 @@ void INA237::setBusUndervoltageTreshold(double voltage)
     _writeRegister(INA237_REG_BUVL, regval);
 }
 
-void INA237::setTempOverlimitTreshold(double temp)
+void INA237::setTempOverlimitTreshold(const double &temp)
 {
-    temp = temp > 255 ? 255 : (temp < -255 ? -255 : temp);
-    double value = temp / INA237_TEMP_LSB_RES;
+    double temp_limit = temp > 255 ? 255 : (temp < -255 ? -255 : temp);
+    double value = temp_limit / INA237_TEMP_LSB_RES;
     int16_t regval = ((int16_t)round(value) << 4) & 0xFFF0;
     
     _writeRegister(INA237_REG_TEMP_LIMIT, (uint16_t)regval);
 }
 
-void INA237::setPowerOverlimitTreshold(double power)
+void INA237::setPowerOverlimitTreshold(const double &power)
 {
     double divider = (_current_lsb * 0.2 * 256);
     double value = divider != 0.0 ? ( power / divider) : 0.0;
@@ -162,19 +162,19 @@ void INA237::setPowerOverlimitTreshold(double power)
     _writeRegister(INA237_REG_PWR_LIMIT, (uint16_t)regval);
 }
 
-void INA237::setOverCurrentTreshold(double current)
+void INA237::setOverCurrentTreshold(const double &current)
 {
     double voltage = current * _shunt_res;
     setShuntOvervoltageTreshold(voltage);
 }
 
-void INA237::setUnderCurrentTreshold(double current)
+void INA237::setUnderCurrentTreshold(const double &current)
 {
     double voltage = current * _shunt_res;
     setShuntUndervoltageTreshold(voltage);
 }
 
-uint16_t INA237::getAlertFlag(void)
+uint16_t INA237::getAlertFlag(void) const
 {
     uint8_t reg[2];
     uint16_t regval;
@@ -183,7 +183,7 @@ uint16_t INA237::getAlertFlag(void)
     return regval;
 }
 
-double INA237::getBusVoltage(void)
+double INA237::getBusVoltage(void) const
 {
     uint8_t arr[2];
     int16_t voltage = 0;
@@ -193,7 +193,7 @@ double INA237::getBusVoltage(void)
     return voltage * INA237_VBUS_LSB_RES;
 }
 
-double INA237::getShuntVoltage(void)
+double INA237::getShuntVoltage(void) const
 {
     uint8_t arr[2];
     int16_t voltage = 0;
@@ -203,7 +203,7 @@ double INA237::getShuntVoltage(void)
     return voltage * INA237_VSHUNT_LSB_RES[_adc_range];
 }
 
-double INA237::getCurrent(void)
+double INA237::getCurrent(void) const
 {
     uint8_t arr[2];
     int16_t current = 0;
@@ -213,7 +213,7 @@ double INA237::getCurrent(void)
     return current * _current_lsb;
 }
 
-double INA237::getPower(void)
+double INA237::getPower(void) const
 {
     uint8_t arr[3];
     uint32_t power = 0;
@@ -223,7 +223,7 @@ double INA237::getPower(void)
     return (double)power * _current_lsb * 0.2;
 }
 
-double INA237::getTemp(void)
+double INA237::getTemp(void) const
 {
     uint8_t arr[2];
     int16_t temp = 0;
@@ -234,7 +234,7 @@ double INA237::getTemp(void)
     return (double)temp * INA237_TEMP_LSB_RES;
 }
 
-double INA237::getShuntOvervoltageTreshold(void)
+double INA237::getShuntOvervoltageTreshold(void) const
 {
     uint8_t arr[2];
     int16_t value = 0;
@@ -244,7 +244,7 @@ double INA237::getShuntOvervoltageTreshold(void)
     return (double)value * INA237_VSHUNT_LSB_RES[_adc_range];
 }
 
-double INA237::getShuntUndervoltageTreshold(void)
+double INA237::getShuntUndervoltageTreshold(void) const
 {
     uint8_t arr[2];
     int16_t value = 0;
@@ -254,7 +254,7 @@ double INA237::getShuntUndervoltageTreshold(void)
     return (double)value * INA237_VSHUNT_LSB_RES[_adc_range];
 }
 
-double INA237::getBusOvervoltageTreshold(void)
+double INA237::getBusOvervoltageTreshold(void) const
 {
     uint8_t arr[2];
     uint16_t value = 0;
@@ -264,7 +264,7 @@ double INA237::getBusOvervoltageTreshold(void)
     return (double)value * INA237_VBUS_LSB_RES;
 }
 
-double INA237::getBusUndervoltageTreshold(void)
+double INA237::getBusUndervoltageTreshold(void) const
 {
     uint8_t arr[2];
     uint16_t value = 0;
@@ -274,7 +274,7 @@ double INA237::getBusUndervoltageTreshold(void)
     return (double)value * INA237_VBUS_LSB_RES;
 }
 
-double INA237::getTempOverlimitTreshold(void)
+double INA237::getTempOverlimitTreshold(void) const
 {
     uint8_t arr[2];
     int16_t value = 0;
@@ -285,7 +285,7 @@ double INA237::getTempOverlimitTreshold(void)
     return (double)value * INA237_TEMP_LSB_RES;
 }
 
-double INA237::getPowerOverlimitTreshold(void)
+double INA237::getPowerOverlimitTreshold(void) const
 {
     uint8_t arr[2];
     uint32_t value = 0;
@@ -296,21 +296,21 @@ double INA237::getPowerOverlimitTreshold(void)
     return (double)value * 0.2 * _current_lsb;
 }
 
-double INA237::getOverCurrentTreshold(void)
+double INA237::getOverCurrentTreshold(void) const
 {
     double voltage = getShuntOvervoltageTreshold();
     double current = (_shunt_res != 0.0) ?  (voltage / _shunt_res) : 0.0;
     return current;
 }
 
-double INA237::getUnderCurrentTreshold(void)
+double INA237::getUnderCurrentTreshold(void) const
 {
     double voltage = getShuntUndervoltageTreshold();
     double current = (_shunt_res != 0.0) ?  (voltage / _shunt_res) : 0.0;
     return current;
 }
 
-uint16_t INA237::getManufacturerID(void)
+uint16_t INA237::getManufacturerID(void) const
 {
     uint8_t arr[2];
     uint16_t value = 0;
@@ -322,7 +322,7 @@ uint16_t INA237::getManufacturerID(void)
 
 /*----------PRIVATE FUNCTIONS-------------------------------------------------*/
 
-void INA237::_readRegister(uint8_t reg, uint8_t cnt, uint8_t *data)
+void INA237::_readRegister(uint8_t reg, uint8_t cnt, uint8_t *data) const
 {
     /* set device's register pointer to correct register before read */
     _i2c->beginTransmission(_device_address);

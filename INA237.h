@@ -121,49 +121,49 @@ typedef struct
 class INA237
 {
 public:
-    INA237(TwoWire* i2c_handler, uint8_t addr = 0x40);
+    INA237(TwoWire* i2c_handler, const uint8_t &addr = 0x40);
     ~INA237();
 
     void reset(void);
 
-    void calibrate(double res, double max_current, bool rounded = true);
+    void calibrate(const double &res, const double &max_current, const bool &rounded = true);
     
-    bool configADC(ina237_adc_config_t config = INA237_DEFAULT_ADC_CONFIG);
-    void configAlert(ina237_alrt_config_t config);
+    bool configADC(const ina237_adc_config_t &config = INA237_DEFAULT_ADC_CONFIG);
+    void configAlert(const ina237_alrt_config_t &config);
 
     /* setters */
-    void setConversionDelay(uint8_t delay);
-    void setADCRange(uint8_t);
-    void setShuntOvervoltageTreshold(double voltage);
-    void setShuntUndervoltageTreshold(double voltage);
-    void setBusOvervoltageTreshold(double voltage);
-    void setBusUndervoltageTreshold(double voltage);
-    void setTempOverlimitTreshold(double temp);
-    void setPowerOverlimitTreshold(double power);
-    void setOverCurrentTreshold(double current);
-    void setUnderCurrentTreshold(double current);
+    void setConversionDelay(const uint8_t &delay);
+    void setADCRange(const uint8_t &range);
+    void setShuntOvervoltageTreshold(const double &voltage);
+    void setShuntUndervoltageTreshold(const double &voltage);
+    void setBusOvervoltageTreshold(const double &voltage);
+    void setBusUndervoltageTreshold(const double &voltage);
+    void setTempOverlimitTreshold(const double &temp);
+    void setPowerOverlimitTreshold(const double &power);
+    void setOverCurrentTreshold(const double &current);
+    void setUnderCurrentTreshold(const double &current);
 
     /* getters */
-    uint16_t getAlertFlag(void);
-    double getBusVoltage(void);
-    double getShuntVoltage(void);
-    double getCurrent(void);
-    double getPower(void);
-    double getTemp(void);
-    double getShuntOvervoltageTreshold(void);
-    double getShuntUndervoltageTreshold(void);
-    double getBusOvervoltageTreshold(void);
-    double getBusUndervoltageTreshold(void);
-    double getTempOverlimitTreshold(void);
-    double getPowerOverlimitTreshold(void);
-    double getOverCurrentTreshold(void);
-    double getUnderCurrentTreshold(void);
-    uint16_t getManufacturerID(void);
+    uint16_t getAlertFlag(void) const;
+    double getBusVoltage(void) const;
+    double getShuntVoltage(void) const;
+    double getCurrent(void) const;
+    double getPower(void) const;
+    double getTemp(void) const;
+    double getShuntOvervoltageTreshold(void) const;
+    double getShuntUndervoltageTreshold(void) const;
+    double getBusOvervoltageTreshold(void) const;
+    double getBusUndervoltageTreshold(void) const;
+    double getTempOverlimitTreshold(void) const;
+    double getPowerOverlimitTreshold(void) const;
+    double getOverCurrentTreshold(void) const;
+    double getUnderCurrentTreshold(void) const;
+    uint16_t getManufacturerID(void) const;
 
 private:
-    void _readRegister(uint8_t reg, uint8_t cnt, uint8_t *data);
-    void _writeRegister(uint8_t reg, uint16_t data);
-    void _writeRegister(uint8_t reg, uint8_t cnt, uint8_t *data);
+    void _readRegister(const uint8_t reg, const uint8_t cnt, uint8_t *data) const;
+    void _writeRegister(const uint8_t reg, const uint16_t data);
+    void _writeRegister(const uint8_t reg, const uint8_t cnt, uint8_t *data);
 
     /* Private variables */
     uint8_t _device_address;
