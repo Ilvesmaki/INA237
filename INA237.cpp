@@ -203,7 +203,7 @@ double INA237::getPower(void)
     _readRegister(INA237_REG_POWER, 3, &arr[0]);
     power = ((uint32_t)arr[2] << 16) | ((uint32_t)arr[1] << 8) | ((uint32_t)arr[0]);
 
-    return power * _current_lsb * 0.2;
+    return (double)power * _current_lsb * 0.2;
 }
 
 double INA237::getTemp(void)
@@ -214,7 +214,7 @@ double INA237::getTemp(void)
     temp = (int16_t)(((uint16_t)arr[1] << 8) | ((uint16_t)arr[0]));
     temp >>= 4;
 
-    return temp * INA237_TEMP_LSB_RES;
+    return (double)temp * INA237_TEMP_LSB_RES;
 }
 
 double INA237::getShuntOvervoltageTreshold(void)
@@ -224,7 +224,7 @@ double INA237::getShuntOvervoltageTreshold(void)
     _readRegister(INA237_REG_SOVL, 2, &arr[0]);
     value = (int16_t)(((uint16_t)arr[1] << 8) | ((uint16_t)arr[0]));
 
-    return value * INA237_VSHUNT_LSB_RES[_adc_range];
+    return (double)value * INA237_VSHUNT_LSB_RES[_adc_range];
 }
 
 double INA237::getShuntUndervoltageTreshold(void)
@@ -234,7 +234,7 @@ double INA237::getShuntUndervoltageTreshold(void)
     _readRegister(INA237_REG_SUVL, 2, &arr[0]);
     value = (int16_t)(((uint16_t)arr[1] << 8) | ((uint16_t)arr[0]));
 
-    return value * INA237_VSHUNT_LSB_RES[_adc_range];
+    return (double)value * INA237_VSHUNT_LSB_RES[_adc_range];
 }
 
 double INA237::getBusOvervoltageTreshold(void)
@@ -244,7 +244,7 @@ double INA237::getBusOvervoltageTreshold(void)
     _readRegister(INA237_REG_BOVL, 2, &arr[0]);
     value = (((uint16_t)arr[1] << 8) | ((uint16_t)arr[0]));
 
-    return value * INA237_VBUS_LSB_RES;
+    return (double)value * INA237_VBUS_LSB_RES;
 }
 
 double INA237::getBusUndervoltageTreshold(void)
@@ -254,7 +254,7 @@ double INA237::getBusUndervoltageTreshold(void)
     _readRegister(INA237_REG_BUVL, 2, &arr[0]);
     value = (((uint16_t)arr[1] << 8) | ((uint16_t)arr[0]));
 
-    return value * INA237_VBUS_LSB_RES;
+    return (double)value * INA237_VBUS_LSB_RES;
 }
 
 double INA237::getTempOverlimitTreshold(void)
@@ -265,7 +265,7 @@ double INA237::getTempOverlimitTreshold(void)
     value = (int16_t)(((uint16_t)arr[1] << 8) | ((uint16_t)arr[0]));
     value >>= 4;
 
-    return value * INA237_TEMP_LSB_RES;
+    return (double)value * INA237_TEMP_LSB_RES;
 }
 
 double INA237::getPowerOverlimitTreshold(void)
@@ -276,7 +276,7 @@ double INA237::getPowerOverlimitTreshold(void)
     value = (((uint32_t)arr[1] << 8) | ((uint32_t)arr[0]));
     value <<= 8; // multiply by 256
 
-    return value * 0.2 * _current_lsb;
+    return (double)value * 0.2 * _current_lsb;
 }
 
 uint16_t INA237::getManufacturerID(void)
